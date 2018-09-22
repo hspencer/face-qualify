@@ -1,0 +1,29 @@
+@import url('https//fonts.googleapis.com/css?family=Montserrat:800');
+
+body{
+	font-family: 'Montserrat', sans-serif;
+	font-weight: 800;
+	font-size: 18px;
+	background-color: #D7E9FF;
+	margin: 0 auto;
+	padding: 0;
+	text-align: center;
+}
+
+#question{
+	padding: .6em .5em;
+	font-size: 180%;
+}
+
+
+#qualification{
+    position: absolute;
+    display: inline-block;
+    right: 25vw;
+    top: 29vh;
+}
+
+#val{
+	font-size: 5em;
+	font-weight: normal;
+}
