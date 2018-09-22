@@ -16,6 +16,7 @@ var output;                                          // output HTML container
 var xc;                                              // constrained drag value
 var touched;                                         // boolean
 var sc;                                              // global scale factor
+var qualified;                                       // if the user has done something
 
 function setup() {
   regen();
@@ -27,13 +28,14 @@ function setup() {
   color3 = color(242, 231, 69);
   color4 = color(136, 190, 70);
   color5 = color(91, 235, 74)
-  colorc = color3;
+  colorc = color(255);
   output = document.getElementById('val');
 
   /* initialize default */
   xc = width/2;
   X = .5;
   touched = false;
+  qualified = false;
 }
 
 /* regenerate when window resized*/
@@ -54,6 +56,9 @@ function deviceTurned(){
 
 function touchStarted() {
   touched = true;
+  xc = map(Math.round(X * 4 + 1), 1, 5, M, width - M);
+  qualified = true;
+  face.calc();
   return false;
 }
 
@@ -80,7 +85,13 @@ function drawSlider(y) {
 }
 
 function drawVal(){
-  var val = Math.round(X * 4 + 1);      // escala de 5
+  var val; // value
+  if(qualified){
+    val = Math.round(X * 4 + 1);      // escala de 5
+  }else{
+    val = "";
+  }
+  
   var fSize = map(sc, .5, 3, 72, 320);  // font size
   fill(0);
   noStroke();
@@ -109,32 +120,36 @@ function Face(x, y, s) {
   this.q4 = expressionOk;
   this.q5 = expressionHappy;
   this.q0 = this.q3;
-  
   this.calc = function(val) {
     var n;
     var v = Math.round(val*4 + 1);
-    switch(v){
-      case 1:
+    if(qualified){
+      switch(v){
+        case 1:
         this.q0 = this.q1;
         colorc = color1;
         break;
-      case 2:
+        case 2:
         this.q0 = this.q2;
         colorc = color2;
         break;
-      case 3:
+        case 3:
         this.q0 = this.q3;
         colorc = color3;
         break;
-      case 4:
+        case 4:
         this.q0 = this.q4;
         colorc = color4;
         break;
-      case 5:
+        case 5:
         this.q0 = this.q5;
         colorc = color5;
         break;
+      }
+    }else{
+      colorc = color(255);
     }
+    
   }
 
   this.drawFace = function() {
@@ -212,12 +227,12 @@ function Face(x, y, s) {
     bezierVertex(this.q0[8][0], this.q0[8][1], -this.q0[8][0], this.q0[8][1], -this.q0[7][0], this.q0[7][1]);
     vertex(-this.q0[7][0], this.q0[7][1]);
     bezierVertex(-this.q0[9][0], this.q0[9][1], this.q0[9][0], this.q0[9][1], this.q0[7][0], this.q0[7][1]);
-    endShape();
+    endShape(CLOSE);
   }
 }
 
 
- 
+
 //======================= expression data =======================
 
 
@@ -262,7 +277,7 @@ var expressionNeutral = [
 [-5, -37], 
 [-12, 2], 
 [3, 2], 
-[-23, 28], 
+[-20, 28], 
 [-2, 29], 
 [-12, 29], 
 [-32, -32]
@@ -277,7 +292,7 @@ var expressionOk = [
 [-5, -37], 
 [-12, 2], 
 [3, 2], 
-[-29, 25], 
+[-22, 25], 
 [-4, 33], 
 [-4, 33], 
 [-32, -32]
