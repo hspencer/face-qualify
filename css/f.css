@@ -11,24 +11,17 @@ body{
 }
 
 #question{
-	padding: .6em .5em;
-	font-size: 180%;
+    font-size: 1.3em;
+    font-weight: 800;
+    padding: .6em .1em;
 }
 
 .tip{
-	font-size: 60%;
-	margin-top: 1em;
-	font-weight: 400;
-}
-
-#qualification{
-    position: absolute;
-    display: inline-block;
-    right: 25vw;
-    margin-top: -12em;
+    font-size: 80%;
+    font-weight: 400;
+    margin-top: .5;
 }
 
 #val{
-	font-size: 5em;
-	font-weight: 800;
+	display: none;
 }
