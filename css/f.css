@@ -22,7 +22,12 @@ body{
 }
 
 #val{
-	display: none;
+    font-family: menlo;
+    font-weight: 200;
+    padding: 2ex;
+    white-space: pre-wrap;
+    text-align: left;
+    line-height: 200%;
 }
 
 .link{

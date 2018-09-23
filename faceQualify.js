@@ -6,7 +6,7 @@
  **/
 
 
- /* global variables */
+/* global variables */
 var canvas;                                          // the current canvas
 var output;                                          // output HTML container (currently hidden as #val)
 var colorc, color1, color2, color3, color4, color5;  // colors
@@ -28,6 +28,8 @@ function setup() {
 	regen();
 	sc = map(windowWidth, 240, 1920, .5, 3);
 	face = new Face(width/3, height/2, sc);
+	strokeJoin(ROUND);
+	
 	/* define colors */
 	color1 = color(211, 60, 47);
 	color2 = color(242, 165, 45);
@@ -37,10 +39,14 @@ function setup() {
 	colorc = color(255);
 	
 	output = document.getElementById('val');
+	output.innerHTML = "";
 
 	/* initialize default */
 	rX = width/2;
 	nX = .5;
+	sX = 3;
+  qX = 0;
+
 	touched = false;
 	qualified = false;
 }
@@ -62,20 +68,27 @@ function deviceTurned(){
 }
 
 function touchStarted() {
-	face.calc();
 	qualified = true;
 	touched = true;
 	return false;
 }
 
+function mouseReleased(){
+	face.calcRound();
+	touched = false;
+	rX = map(qX, 1, 5, m * 2, width - m * 2);
+	return false;
+}
+
 function touchEnded() {
 	face.calcRound();
+	rX = map(qX, 1, 5, m * 2, width - m * 2);
 	touched = false;
 	return false;
 }
 
 function drawSlider(y) {
-	fill(242);
+	fill(222);
 	noStroke();
 	rect(m, y+m, width-2*m, 2*m, m);
 	fill(colorc);
@@ -100,14 +113,26 @@ function drawVal(){
 	textAlign(CENTER, CENTER);
 	text(val, width/3 * 2, height/2);
 
-	output.innerHTML = qX;
+	// output.innerHTML = qX;
 }
 
 function draw() {
 	clear();
+	if(mouseIsPressed || touched){
+		face.calc();
+	}
+
 	face.drawFace();
 	drawSlider(canvas.height - 60);
 	drawVal();
+	debug();
+}
+
+function debug(){
+	output.innerHTML = "rX = " + rX.toPrecision(3) 
+										+ "\t nX = " + nX.toPrecision(3) 
+										+ "\nsX = " + sX.toPrecision(3) 
+										+ "\t qX = " + qX;
 }
 
 function Face(x, y, s) {
@@ -125,13 +150,11 @@ function Face(x, y, s) {
 	this.expC = this.exp3;
 	
 	this.calc = function() {
-
-		if (mouseIsPressed || touched) {
-			rX = constrain(mouseX, M, width-M);  // real x constrained value within margins
-			nX = map(rX, M, width-M, 0, 1);      // normalized value of nX
-			sX = nX * 4 + 1;                     // smoothed x between 1 and 5
-		}
-
+			
+		rX = constrain(mouseX, M, width-M);  // real x constrained value within margins
+		nX = map(rX, M, width-M, 0, 1);      // normalized value of nX
+		sX = nX * 4 + 1;                     // smoothed x between 1 and 5
+		
 		var interval;
 
 		if(sX >= 1 && sX < 2){
@@ -161,9 +184,10 @@ function Face(x, y, s) {
 	}
 
 	this.calcRound = function(){
+		
+		qX = Math.round(sX);
+
 		if(qualified){
-			qX = Math.round(sX);                 // qualified x (rounded from 1 to 5)
-			rX = map(qX, 1, 5, m * 2, width - m * 2);
 			switch(qX){
 				case 1:
 				this.expC = this.exp1;
@@ -192,7 +216,6 @@ function Face(x, y, s) {
 	}
 
 	this.drawFace = function() {
-		this.calc();
 		push();
 		translate(this.x, this.y);
 		scale(this.s);
