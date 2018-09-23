@@ -1,240 +1,275 @@
 
 /**
  **
- **     Face Qualify ~ for cognitive accesibility
+ **     Face Qualify ~ for cognitive accesibility    (cc) @hspencer
  **
  **/
 
 
  /* global variables */
 var canvas;                                          // the current canvas
+var output;                                          // output HTML container (currently hidden as #val)
 var colorc, color1, color2, color3, color4, color5;  // colors
 var m = 20;                                          // margin 
 var M = 2 * m;                                       // real margin
-var X;                                               // x input (normalized)
-var output;                                          // output HTML container
-var xc;                                              // constrained drag value
+var face;
 var touched;                                         // boolean
 var sc;                                              // global scale factor
 var qualified;                                       // if the user has done something
 
-function setup() {
-  regen();
-  sc = map(windowWidth, 240, 1920, .5, 3);
-  face = new Face(width/3, height/2, sc);
-  /* define colors */
-  color1 = color(211, 60, 47);
-  color2 = color(242, 165, 45);
-  color3 = color(242, 231, 69);
-  color4 = color(136, 190, 70);
-  color5 = color(91, 235, 74)
-  colorc = color(255);
-  output = document.getElementById('val');
 
-  /* initialize default */
-  xc = width/2;
-  X = .5;
-  touched = false;
-  qualified = false;
+/* x values */
+var rX;          // real x constrained value within margins
+var nX;          // normalized x
+var sX;          // smoothed x between 1 and 5
+var qX;          // qualified x (rounded from 1 to 5)
+
+function setup() {
+	regen();
+	sc = map(windowWidth, 240, 1920, .5, 3);
+	face = new Face(width/3, height/2, sc);
+	/* define colors */
+	color1 = color(211, 60, 47);
+	color2 = color(242, 165, 45);
+	color3 = color(242, 231, 69);
+	color4 = color(136, 190, 70);
+	color5 = color(91, 235, 74)
+	colorc = color(255);
+	
+	output = document.getElementById('val');
+
+	/* initialize default */
+	rX = width/2;
+	nX = .5;
+	touched = false;
+	qualified = false;
 }
 
 /* regenerate when window resized*/
 function regen(){
-  var side;
-  if(windowHeight > windowWidth){
-   side = constrain(windowWidth, 200, 700);
- } else{
-   side = windowHeight;
- }
- canvas = createCanvas(side, side*.75);
- canvas.parent('canvasContainer');
+	var side;
+	if(windowHeight > windowWidth){
+		side = constrain(windowWidth, 200, 700);
+	} else{
+		side = windowHeight;
+	}
+	canvas = createCanvas(side, side*.75);
+	canvas.parent('canvasContainer');
 }
 
 function deviceTurned(){
-  regen();
+	regen();
 }
 
 function touchStarted() {
-  touched = true;
-  xc = map(Math.round(X * 4 + 1), 1, 5, M, width - M);
-  qualified = true;
-  face.calc();
-  return false;
+	face.calc();
+	qualified = true;
+	touched = true;
+	return false;
 }
 
 function touchEnded() {
-  touched = false;
-  xc = map(Math.round(X * 4 + 1), 1, 5, M, width - M);
-  return false;
+	face.calcRound();
+	touched = false;
+	return false;
 }
 
 function drawSlider(y) {
-  if (mouseIsPressed || touched) {
-    xc = constrain(mouseX, M, width-M);
-    X = map(xc, M, width-M, 0, 1);
-  } 
-
-  fill(242);
-  noStroke();
-  rect(m, y+m, width-2*m, 2*m, m);
-  fill(colorc);
-  stroke(0);
-  strokeWeight(m/5);
-  ellipse(xc, y+m*2, m*1.5, m*1.5);
-  output.innerHTML = Math.round(X * 4 + 1); // escala de 5
+	fill(242);
+	noStroke();
+	rect(m, y+m, width-2*m, 2*m, m);
+	fill(colorc);
+	stroke(0);
+	strokeWeight(m/5);
+	ellipse(rX, y+m*2, m*1.5, m*1.5);
 }
 
 function drawVal(){
-  var val; // value
-  if(qualified){
-    val = Math.round(X * 4 + 1);      // escala de 5
-  }else{
-    val = "";
-  }
-  
-  var fSize = map(sc, .5, 3, 72, 320);  // font size
-  fill(0);
-  noStroke();
-  textFont('Open Sans', fSize);
-  textAlign(CENTER, CENTER);
-  text(val, width/3 * 2, height/2);
+	var val; // value
+	if(qualified){
+		face.calcRound();
+		val = qX;
+	}else{
+		val = "";
+	}
+	
+	var fSize = map(sc, .5, 3, 72, 320);  // font size
+	fill(0);
+	noStroke();
+	textFont('Open Sans', fSize);
+	textAlign(CENTER, CENTER);
+	text(val, width/3 * 2, height/2);
+
+	output.innerHTML = qX;
 }
 
 function draw() {
-  clear();
-  face.drawFace();
-  drawSlider(canvas.height - 60);
-  drawVal();
+	clear();
+	face.drawFace();
+	drawSlider(canvas.height - 60);
+	drawVal();
 }
 
 function Face(x, y, s) {
-  this.x = x; // x position
-  this.y = y; // y position
-  this.s = s; // scale
-  
-  // current, start, middle and target expression
-  this.q0 = this.q1 = this.q2 = this.q3 = this.q4 = this.q5 = [];
-  this.q1 = expressionAnguish;
-  this.q2 = expressionSad;
-  this.q3 = expressionNeutral;
-  this.q4 = expressionOk;
-  this.q5 = expressionHappy;
-  this.q0 = this.q3;
-  this.calc = function(val) {
-    var n;
-    var v = Math.round(val*4 + 1);
-    if(qualified){
-      switch(v){
-        case 1:
-        this.q0 = this.q1;
-        colorc = color1;
-        break;
-        case 2:
-        this.q0 = this.q2;
-        colorc = color2;
-        break;
-        case 3:
-        this.q0 = this.q3;
-        colorc = color3;
-        break;
-        case 4:
-        this.q0 = this.q4;
-        colorc = color4;
-        break;
-        case 5:
-        this.q0 = this.q5;
-        colorc = color5;
-        break;
-      }
-    }else{
-      colorc = color(255);
-    }
-    
-  }
+	this.x = x; // x position
+	this.y = y; // y position
+	this.s = s; // scale
+	
+	// current, start, middle and target expression
+	this.expC = this.exp1 = this.exp2 = this.exp3 = this.exp4 = this.exp5 = [];
+	this.exp1 = expressionAnguish;
+	this.exp2 = expressionSad;
+	this.exp3 = expressionNeutral;
+	this.exp4 = expressionOk;
+	this.exp5 = expressionHappy;
+	this.expC = this.exp3;
+	
+	this.calc = function() {
 
-  this.drawFace = function() {
-    if (mouseIsPressed || touched) {
-      this.calc(X);
-    }
-    push();
-    translate(this.x, this.y);
-    scale(this.s);
-    this.drawContour();
-    this.drawEyes();
-    this.drawNose();
-    this.drawEyebrows();
-    this.drawMouth();
-    pop();
-  }
+		if (mouseIsPressed || touched) {
+			rX = constrain(mouseX, M, width-M);  // real x constrained value within margins
+			nX = map(rX, M, width-M, 0, 1);      // normalized value of nX
+			sX = nX * 4 + 1;                     // smoothed x between 1 and 5
+		}
 
-  this.drawContour = function() {
-    var a = createVector(-68.0, -32.0);
-    var b = createVector(-75.0, -146.0);
-    var c = createVector(-64.0, 115.0);
-    noStroke();
-    fill(colorc);
-    beginShape();
-    vertex(a.x, a.y);
-    bezierVertex(b.x, b.y, -b.x, b.y, -a.x, a.y);
-    vertex(-a.x, a.y);
-    bezierVertex(-c.x, c.y, c.x, c.y, a.x, a.y);
-    endShape();
-  }
+		var interval;
 
-  this.drawEyes = function() {
-    fill(0);
-    noStroke();
-    ellipse(this.q0[10][0], this.q0[10][1], 10, 10);
-    ellipse(-this.q0[10][0], this.q0[10][1], 10, 10);
-  }
+		if(sX >= 1 && sX < 2){
+			interval = map(sX, 1, 2, 0, 1);
+			this.interpolateExpression(this.exp1, this.exp2, interval);
+			colorc = lerpColor(color1, color2, interval);
+		}else if(sX >= 2 && sX < 3){
+			interval = map(sX, 2, 3, 0, 1);
+			this.interpolateExpression(this.exp2, this.exp3, interval);
+			colorc = lerpColor(color2, color3, interval);
+		}else if(sX >= 3 && sX < 4){
+			interval = map(sX, 3, 4, 0, 1);
+			this.interpolateExpression(this.exp3, this.exp4, interval);
+			colorc = lerpColor(color3, color4, interval);
+		}else if(sX >= 4 && sX <= 5){
+			interval = map(sX, 4, 5, 0, 1);
+			this.interpolateExpression(this.exp4, this.exp5, interval);
+			colorc = lerpColor(color4, color5, interval);
+		}
+	}
 
-  this.drawNose = function() {
-    stroke(0);
-    strokeWeight(3);
-    noFill();
-    beginShape();
-    vertex(this.q0[4][0], this.q0[4][1]);
-    vertex(this.q0[5][0], this.q0[5][1]);
-    vertex(this.q0[6][0], this.q0[6][1]);
-    endShape();
-  }
+	this.interpolateExpression = function(expression1, expression2, percentage){
+		for(var i = 0; i < this.expC.length; i++){
+			this.expC[i][0] = lerp(expression1[i][0], expression2[i][0], percentage);
+			this.expC[i][1] = lerp(expression1[i][1], expression2[i][1], percentage);
+		}
+	}
 
-  this.drawEyebrow = function() {
-    stroke(0);
-    strokeWeight(3);
-    noFill();
-    bezier(
-      this.q0[0][0], this.q0[0][1], 
-      this.q0[1][0], this.q0[1][1], 
-      this.q0[2][0], this.q0[2][1], 
-      this.q0[3][0], this.q0[3][1]);
-  }
+	this.calcRound = function(){
+		if(qualified){
+			qX = Math.round(sX);                 // qualified x (rounded from 1 to 5)
+			rX = map(qX, 1, 5, m * 2, width - m * 2);
+			switch(qX){
+				case 1:
+				this.expC = this.exp1;
+				colorc = color1;
+				break;
+				case 2:
+				this.expC = this.exp2;
+				colorc = color2;
+				break;
+				case 3:
+				this.expC = this.exp3;
+				colorc = color3;
+				break;
+				case 4:
+				this.expC = this.exp4;
+				colorc = color4;
+				break;
+				case 5:
+				this.expC = this.exp5;
+				colorc = color5;
+				break;
+			}
+		}else{
+			colorc = color(255);
+		} 
+	}
 
-  this.drawEyebrows = function() {
-    // left
-    this.drawEyebrow();
-    // right
-    push();
-    scale(-1, 1);
-    this.drawEyebrow();
-    pop();
-  }
+	this.drawFace = function() {
+		this.calc();
+		push();
+		translate(this.x, this.y);
+		scale(this.s);
+		this.drawContour();
+		this.drawEyes();
+		this.drawNose();
+		this.drawEyebrows();
+		this.drawMouth();
+		pop();
+	}
 
-  this.drawMouth = function() {
-    fill(0);
-    beginShape();  
-    vertex(this.q0[7][0], this.q0[7][1]);  
-    bezierVertex(this.q0[8][0], this.q0[8][1], -this.q0[8][0], this.q0[8][1], -this.q0[7][0], this.q0[7][1]);
-    vertex(-this.q0[7][0], this.q0[7][1]);
-    bezierVertex(-this.q0[9][0], this.q0[9][1], this.q0[9][0], this.q0[9][1], this.q0[7][0], this.q0[7][1]);
-    endShape(CLOSE);
-  }
+	this.drawContour = function() {
+		var a = createVector(-68.0, -32.0);
+		var b = createVector(-75.0, -146.0);
+		var c = createVector(-64.0, 115.0);
+		noStroke();
+		fill(colorc);
+		beginShape();
+		vertex(a.x, a.y);
+		bezierVertex(b.x, b.y, -b.x, b.y, -a.x, a.y);
+		vertex(-a.x, a.y);
+		bezierVertex(-c.x, c.y, c.x, c.y, a.x, a.y);
+		endShape();
+	}
+
+	this.drawEyes = function() {
+		fill(0);
+		noStroke();
+		ellipse(this.expC[10][0], this.expC[10][1], 10, 10);
+		ellipse(-this.expC[10][0], this.expC[10][1], 10, 10);
+	}
+
+	this.drawNose = function() {
+		stroke(0);
+		strokeWeight(3);
+		noFill();
+		beginShape();
+		vertex(this.expC[4][0], this.expC[4][1]);
+		vertex(this.expC[5][0], this.expC[5][1]);
+		vertex(this.expC[6][0], this.expC[6][1]);
+		endShape();
+	}
+
+	this.drawEyebrow = function() {
+		stroke(0);
+		strokeWeight(3);
+		noFill();
+		bezier(
+			this.expC[0][0], this.expC[0][1], 
+			this.expC[1][0], this.expC[1][1], 
+			this.expC[2][0], this.expC[2][1], 
+			this.expC[3][0], this.expC[3][1]);
+	}
+
+	this.drawEyebrows = function() {
+		// left
+		this.drawEyebrow();
+		// right
+		push();
+		scale(-1, 1);
+		this.drawEyebrow();
+		pop();
+	}
+
+	this.drawMouth = function() {
+		fill(0);
+		beginShape();  
+		vertex(this.expC[7][0], this.expC[7][1]);  
+		bezierVertex(this.expC[8][0], this.expC[8][1], -this.expC[8][0], this.expC[8][1], -this.expC[7][0], this.expC[7][1]);
+		vertex(-this.expC[7][0], this.expC[7][1]);
+		bezierVertex(-this.expC[9][0], this.expC[9][1], this.expC[9][0], this.expC[9][1], this.expC[7][0], this.expC[7][1]);
+		endShape(CLOSE);
+	}
 }
 
 
-
 //======================= expression data =======================
-
 
 
 /* 1 */
