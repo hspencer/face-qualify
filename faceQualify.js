@@ -93,7 +93,7 @@ function overSlider(){
 	if (mouseX > 0 && 
 		  mouseX < width &&
 		  mouseY > canvas.height - 60 &&
-		  mouseY < canvas.height - 60+m){
+		  mouseY < canvas.height - 60+3*m){
 		return true;
 	}else{
 		return false;
@@ -136,7 +136,7 @@ function draw() {
 	}
 
 	face.drawFace();
-	drawSlider(canvas.height - 60);
+	drawSlider(canvas.height - 4 * m);
 	drawVal();
 	debug();
 }
