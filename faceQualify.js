@@ -76,14 +76,14 @@ function touchStarted() {
 }
 
 function mouseReleased(){
-	face.calcRound();
+	face.calcRounded();
 	touched = false;
 	rX = map(qX, 1, 5, m * 2, width - m * 2);
 	return false;
 }
 
 function touchEnded() {
-	face.calcRound();
+	face.calcRounded();
 	rX = map(qX, 1, 5, m * 2, width - m * 2);
 	touched = false;
 	return false;
@@ -129,7 +129,7 @@ function drawSlider(y) {
 function drawVal(){
 	var val; // value
 	if(qualified){
-		face.calcRound();
+		face.calcRounded();
 		val = qX;
 	}else{
 		val = "";
@@ -149,12 +149,14 @@ function draw() {
 	clear();
 	if(mouseIsPressed && overSlider() || touched && overSlider()){
 		face.calc();
+	}else{
+		face.calcRounded();
 	}
 
 	face.drawFace();
 	drawSlider(canvas.height - 4 * m);
 	drawVal();
-	// debug();
+	debug();
 }
 
 function debug(){
@@ -214,7 +216,7 @@ function Face(x, y, s) {
 		}
 	}
 
-	this.calcRound = function(){
+	this.calcRounded = function(){
 		
 		qX = Math.round(sX);
 
