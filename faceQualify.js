@@ -111,10 +111,10 @@ function drawSlider(y) {
 	for(var i = 0; i < 5; i++){
 
 		if(i == 0){
-			rect(2*m + i * x, y+2*m, 1.5*m, m/4);
+			rect(2*m + i * x, y+2*m, m, m/4);
 		}else if(i == 4){
-			rect(2*m + i * x, y+2*m, 1.5*m, m/4);
-			rect(2*m + i * x, y+2*m, m/4, 1.5*m);
+			rect(2*m + i * x, y+2*m, m, m/4);
+			rect(2*m + i * x, y+2*m, m/4, m);
 		}else{
 			rect(2*m + i * x, y+2*m, m/4, 2*m);
 		}
