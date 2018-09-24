@@ -90,10 +90,10 @@ function touchEnded() {
 }
 
 function overSlider(){
-	if (mouseX > m && 
-		  mouseX < width - m &&
-		  mouseY > canvas.height - 60+m &&
-		  mouseY < canvas.height - 60+m + 2*m){
+	if (mouseX > 0 && 
+		  mouseX < width &&
+		  mouseY > canvas.height - 60 &&
+		  mouseY < canvas.height - 60+m){
 		return true;
 	}else{
 		return false;
