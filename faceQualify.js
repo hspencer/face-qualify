@@ -68,23 +68,36 @@ function deviceTurned(){
 }
 
 function touchStarted() {
-	qualified = true;
-	touched = true;
-	return false;
+	if(overSlider()){
+		qualified = true;
+		touched = true;
+		//return false;
+	}
 }
 
 function mouseReleased(){
 	face.calcRound();
 	touched = false;
 	rX = map(qX, 1, 5, m * 2, width - m * 2);
-	return false;
+	//return false;
 }
 
 function touchEnded() {
 	face.calcRound();
 	rX = map(qX, 1, 5, m * 2, width - m * 2);
 	touched = false;
-	return false;
+	//return false;
+}
+
+function overSlider(){
+	if (mouseX > m && 
+		  mouseX < width - m &&
+		  mouseY > canvas.height - 60+m &&
+		  mouseY < canvas.height - 60+m + 2*m){
+		return true;
+	}else{
+		return false;
+	}
 }
 
 function drawSlider(y) {
@@ -118,7 +131,7 @@ function drawVal(){
 
 function draw() {
 	clear();
-	if(mouseIsPressed || touched){
+	if(mouseIsPressed && overSlider() || touched && overSlider()){
 		face.calc();
 	}
 
@@ -129,10 +142,12 @@ function draw() {
 }
 
 function debug(){
-	output.innerHTML = "rX = " + rX.toPrecision(3) 
+	output.innerHTML = "tap over slider: " + overSlider()
+										+ "\nrX = " + rX.toPrecision(3) 
 										+ "\t nX = " + nX.toPrecision(3) 
 										+ "\nsX = " + sX.toPrecision(3) 
 										+ "\t qX = " + qX;
+										
 }
 
 function Face(x, y, s) {
