@@ -71,7 +71,7 @@ function touchStarted() {
 	if(overSlider()){
 		qualified = true;
 		touched = true;
-		//return false;
+		return false;
 	}
 }
 
@@ -79,14 +79,14 @@ function mouseReleased(){
 	face.calcRound();
 	touched = false;
 	rX = map(qX, 1, 5, m * 2, width - m * 2);
-	//return false;
+	return false;
 }
 
 function touchEnded() {
 	face.calcRound();
 	rX = map(qX, 1, 5, m * 2, width - m * 2);
 	touched = false;
-	//return false;
+	return false;
 }
 
 function overSlider(){
@@ -103,7 +103,23 @@ function overSlider(){
 function drawSlider(y) {
 	fill(222);
 	noStroke();
+	rectMode(CORNER);
 	rect(m, y+m, width-2*m, 2*m, m);
+	fill(255);
+	let x = (width-2*M) / 4;
+	rectMode(CENTER);
+	for(var i = 0; i < 5; i++){
+
+		if(i == 0){
+			rect(2*m + i * x, y+2*m, 1.5*m, m/4);
+		}else if(i == 4){
+			rect(2*m + i * x, y+2*m, 1.5*m, m/4);
+			rect(2*m + i * x, y+2*m, m/4, 1.5*m);
+		}else{
+			rect(2*m + i * x, y+2*m, m/4, 2*m);
+		}
+		
+	}
 	fill(colorc);
 	stroke(0);
 	strokeWeight(m/5);
@@ -138,7 +154,7 @@ function draw() {
 	face.drawFace();
 	drawSlider(canvas.height - 4 * m);
 	drawVal();
-	debug();
+	// debug();
 }
 
 function debug(){
