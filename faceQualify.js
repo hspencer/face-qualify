@@ -156,7 +156,7 @@ function draw() {
 	face.drawFace();
 	drawSlider(canvas.height - 4 * m);
 	drawVal();
-	debug();
+	// debug();
 }
 
 function debug(){
